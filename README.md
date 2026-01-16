@@ -37,7 +37,7 @@ docker compose build mobide-cli
 docker compose up
 ```
 
-The `mobide-cli` service is build-only (it exits immediately) and exists so the host can build
+The `mobide-cli` service is a build-only service (it exits immediately) and exists so the host can build
 the image once before sessions start.
 
 ## MVP Notes

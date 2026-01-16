@@ -18,7 +18,8 @@ const WORKSPACES_ROOT = path.resolve(
     '/workspaces'
 );
 const CLI_IMAGE = process.env.CLI_IMAGE || 'mobide-cli';
-const CLI_IMAGE_PULL = /^(true|1)$/i.test(process.env.CLI_IMAGE_PULL || '');
+const CLI_IMAGE_PULL_VALUE = String(process.env.CLI_IMAGE_PULL || '').toLowerCase();
+const CLI_IMAGE_PULL = CLI_IMAGE_PULL_VALUE === 'true' || CLI_IMAGE_PULL_VALUE === '1';
 const IDLE_TIMEOUT_MS = Number(process.env.IDLE_TIMEOUT_MS) || 30 * 60 * 1000;
 const CLI_USER = process.env.CLI_USER || 'mobide';
 const DOCKER_SOCKET_PATH =
@@ -74,10 +75,10 @@ async function ensureCliImage() {
               if (!event?.status) {
                 return;
               }
-              const label = [event.status, event.id].filter(Boolean).join(' ');
-              if (label && label !== lastStatus) {
-                lastStatus = label;
-                console.log(label);
+              const statusMessage = [event.status, event.id].filter(Boolean).join(' ');
+              if (statusMessage && statusMessage !== lastStatus) {
+                lastStatus = statusMessage;
+                console.log(statusMessage);
               }
             }
           );
