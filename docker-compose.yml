@@ -22,4 +22,5 @@ services:
       context: .
       dockerfile: Dockerfile.cli
     image: mobide-cli
+    # One-off container to build the CLI image; it exits immediately.
     command: ["/bin/true"]

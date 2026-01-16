@@ -18,9 +18,9 @@ const WORKSPACES_ROOT = path.resolve(
     '/workspaces'
 );
 const CLI_IMAGE = process.env.CLI_IMAGE || 'mobide-cli';
-const CLI_IMAGE_PULL =
-  String(process.env.CLI_IMAGE_PULL || '').toLowerCase() === 'true' ||
-  process.env.CLI_IMAGE_PULL === '1';
+const CLI_IMAGE_PULL = ['true', '1'].includes(
+  String(process.env.CLI_IMAGE_PULL || '').toLowerCase()
+);
 const IDLE_TIMEOUT_MS = Number(process.env.IDLE_TIMEOUT_MS) || 30 * 60 * 1000;
 const CLI_USER = process.env.CLI_USER || 'mobide';
 const DOCKER_SOCKET_PATH =
@@ -59,6 +59,7 @@ async function ensureCliImage() {
             `CLI image "${CLI_IMAGE}" not found. Build it or set CLI_IMAGE_PULL=true to pull it.`
           );
         }
+        console.log(`Pulling CLI image "${CLI_IMAGE}"...`);
         const stream = await docker.pull(CLI_IMAGE);
         await new Promise((resolve, reject) => {
           docker.modem.followProgress(stream, (pullError) => {
@@ -69,6 +70,7 @@ async function ensureCliImage() {
             resolve();
           });
         });
+        console.log(`CLI image "${CLI_IMAGE}" pulled successfully.`);
       }
     })();
   }
