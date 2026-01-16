@@ -23,4 +23,4 @@ services:
       dockerfile: Dockerfile.cli
     image: mobide-cli
     # One-off container to build the CLI image; it exits immediately.
-    command: ["/bin/true"]
+    command: ["sh", "-c", "echo 'mobide-cli build-only service'"]
