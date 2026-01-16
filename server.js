@@ -18,8 +18,8 @@ const WORKSPACES_ROOT = path.resolve(
     '/workspaces'
 );
 const CLI_IMAGE = process.env.CLI_IMAGE || 'mobide-cli';
-const CLI_IMAGE_PULL =
-  process.env.CLI_IMAGE_PULL === 'true' || process.env.CLI_IMAGE_PULL === '1';
+const CLI_IMAGE_PULL_VALUE = String(process.env.CLI_IMAGE_PULL || '').toLowerCase();
+const CLI_IMAGE_PULL = ['true', '1', 'yes', 'on'].includes(CLI_IMAGE_PULL_VALUE);
 const IDLE_TIMEOUT_MS = Number(process.env.IDLE_TIMEOUT_MS) || 30 * 60 * 1000;
 const CLI_USER = process.env.CLI_USER || 'mobide';
 const DOCKER_SOCKET_PATH =
@@ -30,7 +30,7 @@ const CODE_REGEX = new RegExp(
   'g'
 );
 const docker = new Docker({ socketPath: DOCKER_SOCKET_PATH });
-let cliImagePromise;
+let cliImagePromise = null;
 const sessions = new Map();
 
 app.use(express.json({ limit: '10mb' }));
@@ -63,6 +63,7 @@ async function ensureCliImage() {
         await new Promise((resolve, reject) => {
           let lastStatus;
           let lastId;
+          let lastProgress;
           docker.modem.followProgress(
             stream,
             (pullError) => {
@@ -76,11 +77,17 @@ async function ensureCliImage() {
               if (!event?.status) {
                 return;
               }
-              if (event.status === lastStatus && event.id === lastId) {
+              const progressValue = event.progressDetail?.current;
+              if (
+                event.status === lastStatus &&
+                event.id === lastId &&
+                progressValue === lastProgress
+              ) {
                 return;
               }
               lastStatus = event.status;
               lastId = event.id;
+              lastProgress = progressValue;
               const statusMessage = event.id ? `${event.status} ${event.id}` : event.status;
               if (statusMessage) {
                 console.log(statusMessage);
