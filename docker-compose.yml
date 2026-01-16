@@ -9,10 +9,17 @@ services:
       - "3000:3000"
     environment:
       PORT: 3000
-      WORKSPACES_ROOT: /workspaces
+      DATA_DIR: /workspaces
+      DOCKER_SOCKET_PATH: /var/run/docker.sock
       CLI_IMAGE: mobide-cli
       CLI_USER: mobide
     volumes:
       - .:/app
       - /var/run/docker.sock:/var/run/docker.sock
       - ./workspaces:/workspaces
+  mobide-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    image: mobide-cli
+    command: ["/bin/true"]

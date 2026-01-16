@@ -11,16 +11,27 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
-const WORKSPACES_ROOT = path.resolve(process.env.WORKSPACES_ROOT || '/workspaces');
+const WORKSPACES_ROOT = path.resolve(
+  process.env.WORKSPACES_ROOT ||
+    process.env.DATA_DIR ||
+    process.env.STORAGE_PATH ||
+    '/workspaces'
+);
 const CLI_IMAGE = process.env.CLI_IMAGE || 'mobide-cli';
+const CLI_IMAGE_PULL =
+  String(process.env.CLI_IMAGE_PULL || '').toLowerCase() === 'true' ||
+  process.env.CLI_IMAGE_PULL === '1';
 const IDLE_TIMEOUT_MS = Number(process.env.IDLE_TIMEOUT_MS) || 30 * 60 * 1000;
 const CLI_USER = process.env.CLI_USER || 'mobide';
+const DOCKER_SOCKET_PATH =
+  process.env.DOCKER_SOCKET_PATH || process.env.DOCKER_SOCKET || '/var/run/docker.sock';
 const URL_REGEX = /https?:\/\/\S+/g;
 const CODE_REGEX = new RegExp(
   process.env.DEVICE_CODE_REGEX || '\\b[A-Za-z0-9]{4,6}-[A-Za-z0-9]{4,6}\\b',
   'g'
 );
-const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock' });
+const docker = new Docker({ socketPath: DOCKER_SOCKET_PATH });
+let cliImagePromise;
 const sessions = new Map();
 
 app.use(express.json({ limit: '10mb' }));
@@ -28,6 +39,40 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 async function ensureWorkspacesRoot() {
   await fs.mkdir(WORKSPACES_ROOT, { recursive: true });
+}
+
+async function ensureCliImage() {
+  if (!cliImagePromise) {
+    cliImagePromise = (async () => {
+      try {
+        await docker.getImage(CLI_IMAGE).inspect();
+        return;
+      } catch (error) {
+        const message = error?.message || '';
+        const isMissingImage =
+          error?.statusCode === 404 || /no such image/i.test(message);
+        if (!isMissingImage) {
+          throw error;
+        }
+        if (!CLI_IMAGE_PULL) {
+          throw new Error(
+            `CLI image "${CLI_IMAGE}" not found. Build it or set CLI_IMAGE_PULL=true to pull it.`
+          );
+        }
+        const stream = await docker.pull(CLI_IMAGE);
+        await new Promise((resolve, reject) => {
+          docker.modem.followProgress(stream, (pullError) => {
+            if (pullError) {
+              reject(pullError);
+              return;
+            }
+            resolve();
+          });
+        });
+      }
+    })();
+  }
+  return cliImagePromise;
 }
 
 function resolveWorkspacePath(sessionId, targetPath = '') {
@@ -124,6 +169,7 @@ async function ensureContainer(sessionId) {
   if (session.container && session.stream) {
     return session;
   }
+  await ensureCliImage();
   const workspace = await ensureWorkspace(sessionId);
   const container = await docker.createContainer({
     Image: CLI_IMAGE,
