@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  server:
+    image: node:20-slim
+    working_dir: /app
+    command: sh -c "npm install && node server.js"
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      WORKSPACES_ROOT: /workspaces
+      CLI_IMAGE: mobide-cli
+      CLI_USER: mobide
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./workspaces:/workspaces

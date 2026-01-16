@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Mobide</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <main id="views">
+        <section id="terminal-view" class="view active">
+          <div id="terminal"></div>
+          <div id="auth-panel" class="panel">
+            <div class="panel-row">
+              <span class="panel-label">URL</span>
+              <span id="auth-url" class="panel-value">—</span>
+              <button id="auth-open" class="panel-button">Open</button>
+              <button id="auth-copy-url" class="panel-button">Copy</button>
+            </div>
+            <div class="panel-row">
+              <span class="panel-label">Code</span>
+              <span id="auth-code" class="panel-value">—</span>
+              <button id="auth-copy-code" class="panel-button">Copy</button>
+            </div>
+          </div>
+          <div id="accessory-bar">
+            <button data-seq="esc">Esc</button>
+            <button data-seq="tab">Tab</button>
+            <button id="ctrl-toggle">Ctrl</button>
+            <button data-seq="up">↑</button>
+            <button data-seq="down">↓</button>
+            <button data-seq="left">←</button>
+            <button data-seq="right">→</button>
+          </div>
+        </section>
+        <section id="files-view" class="view">
+          <div class="toolbar">
+            <button id="files-up">Up</button>
+            <input id="files-search" type="search" placeholder="Search" />
+            <button id="new-file">New File</button>
+            <button id="new-folder">New Folder</button>
+          </div>
+          <ul id="file-list"></ul>
+        </section>
+        <section id="settings-view" class="view">
+          <div class="placeholder">
+            <h2>Settings</h2>
+            <p>Session and appearance settings will live here.</p>
+          </div>
+        </section>
+      </main>
+      <nav id="bottom-nav">
+        <button data-view="terminal" class="active">Terminal</button>
+        <button data-view="files">Files</button>
+        <button data-view="settings">Settings</button>
+      </nav>
+    </div>
+
+    <div id="editor-overlay" class="hidden">
+      <div class="editor-header">
+        <span id="editor-path"></span>
+        <div class="editor-actions">
+          <button id="editor-save">Save</button>
+          <button id="editor-close">Close</button>
+        </div>
+      </div>
+      <textarea id="editor-textarea" spellcheck="false"></textarea>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
