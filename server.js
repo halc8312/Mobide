@@ -18,9 +18,7 @@ const WORKSPACES_ROOT = path.resolve(
     '/workspaces'
 );
 const CLI_IMAGE = process.env.CLI_IMAGE || 'mobide-cli';
-const CLI_IMAGE_PULL = ['true', '1'].includes(
-  String(process.env.CLI_IMAGE_PULL || '').toLowerCase()
-);
+const CLI_IMAGE_PULL = /^(true|1)$/i.test(process.env.CLI_IMAGE_PULL || '');
 const IDLE_TIMEOUT_MS = Number(process.env.IDLE_TIMEOUT_MS) || 30 * 60 * 1000;
 const CLI_USER = process.env.CLI_USER || 'mobide';
 const DOCKER_SOCKET_PATH =
@@ -62,13 +60,27 @@ async function ensureCliImage() {
         console.log(`Pulling CLI image "${CLI_IMAGE}"...`);
         const stream = await docker.pull(CLI_IMAGE);
         await new Promise((resolve, reject) => {
-          docker.modem.followProgress(stream, (pullError) => {
-            if (pullError) {
-              reject(pullError);
-              return;
+          let lastStatus;
+          docker.modem.followProgress(
+            stream,
+            (pullError) => {
+              if (pullError) {
+                reject(pullError);
+                return;
+              }
+              resolve();
+            },
+            (event) => {
+              if (!event?.status) {
+                return;
+              }
+              const label = [event.status, event.id].filter(Boolean).join(' ');
+              if (label && label !== lastStatus) {
+                lastStatus = label;
+                console.log(label);
+              }
             }
-            resolve();
-          });
+          );
         });
         console.log(`CLI image "${CLI_IMAGE}" pulled successfully.`);
       }
