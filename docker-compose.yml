@@ -18,9 +18,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./workspaces:/workspaces
   mobide-cli:
+    # Build-only service for the CLI image.
+    profiles: ["build"]
     build:
       context: .
       dockerfile: Dockerfile.cli
     image: mobide-cli
-    # One-off container to build the CLI image; it exits immediately.
-    command: ["sh", "-c", "echo 'mobide-cli build-only service'"]

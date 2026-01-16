@@ -85,7 +85,9 @@ async function ensureCliImage() {
               if (!event?.status) {
                 return;
               }
-              const progressValue = event.progressDetail?.current;
+              const progressValue = event.progressDetail
+                ? `${event.progressDetail.current}/${event.progressDetail.total}`
+                : undefined;
               if (
                 event.status === lastStatus &&
                 event.id === lastId &&

@@ -33,11 +33,11 @@ If your environment does not allow writing to `/workspaces`, set `DATA_DIR=./wor
 ### Docker Compose
 
 ```bash
-docker compose build mobide-cli
+docker compose --profile build build mobide-cli
 docker compose up
 ```
 
-The `mobide-cli` service is a build-only service (it exits immediately) and exists so the host can build
+The `mobide-cli` service is a build-only service under the `build` profile so the host can build
 the image once before sessions start.
 
 ## MVP Notes
@@ -53,5 +53,5 @@ the image once before sessions start.
 - `CLI_IMAGE_PULL`: set to `true` to pull the CLI image if it is missing.
 - `CLI_USER`: override the user used inside the CLI container.
 - `DEVICE_CODE_REGEX`: override the device code detection regex.
-- `DOCKER_SOCKET_PATH`: override the Docker socket path (defaults to `/var/run/docker.sock`).
+- `DOCKER_SOCKET_PATH` (or `DOCKER_SOCKET`): override the Docker socket path (defaults to `/var/run/docker.sock`).
 - `WORKSPACES_ROOT`, `DATA_DIR`, `STORAGE_PATH`: override the host workspace root (defaults to `/workspaces`).
