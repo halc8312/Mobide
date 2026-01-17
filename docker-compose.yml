@@ -13,6 +13,11 @@ services:
       CLI_IMAGE: mobide-cli
       CLI_USER: mobide
     volumes:
-      - .:/app
+      - app:/app
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./workspaces:/workspaces
+      - workspaces:/workspaces
+    restart: unless-stopped
+
+volumes:
+  app:
+  workspaces:
